@@ -423,7 +423,7 @@ section {
 }
 
 .section-bg {
-  background-color: rgb(253, 253, 244);
+  background-color: rgba(230, 230, 230, 0.5);
 }
 
 .section-title {
@@ -1235,7 +1235,7 @@ section {
 # Footer
 --------------------------------------------------------------*/
 #footer {
-  background: #263f49;
+  background: rgb(177, 177, 177);
   padding: 0 0 30px 0;
   color: #fff;
   font-size: 14px;
@@ -1249,8 +1249,8 @@ section {
   margin-top: -90px;
   margin-bottom: 15px;
   background: white;
-  color: #2f4d5a;
-  border-top: 4px solid #67b0d1;
+  color: rgb(0, 0, 0);
+  border-top: 4px solid #F6EF9A;
   text-align: center;
   padding: 30px 20px;
 }
@@ -1273,7 +1273,7 @@ section {
 #footer .footer-top .social-links a {
   font-size: 18px;
   display: inline-block;
-  background: #2f4d5a;
+  background: rgb(0, 0, 0);
   color: #fff;
   line-height: 1;
   padding: 8px 0;
@@ -1286,7 +1286,7 @@ section {
 }
 
 #footer .footer-top .social-links a:hover {
-  background: #67b0d1;
+  background: #000000;
   color: #fff;
   text-decoration: none;
 }

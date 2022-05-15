@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>San Francisco Housing and Business</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css" rel="stylesheet" />
+
+    <script charset="utf-8" src="https://d3js.org/d3.v4.min.js"></script>
+    <script charset="utf-8" src="https://cdnjs.cloudflare.com/ajax/libs/dimple/2.3.0/dimple.latest.min.js"></script>
+
+
+
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+
+        #text {
+            position: absolute;
+            background-color: #fff;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.20);
+            border-radius: 3px;
+            padding: 16px;
+            margin-top: 10px;
+            margin-left: 10px;
+            width: 25%;
+
+        }
+
+        #text h2 {
+            line-height: 18px;
+            font-size: 17px;
+            margin: 0;
+        }
+
+        #text p.credit {
+            margin: 10px 0 0 0;
+            padding: 0;
+            font: 12px/16px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            vertical-align: bottom;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+
+        #legend {
+            position: absolute;
+            background-color: #fff;
+
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.20);
+            bottom: 6px;
+            right: 6px;
+
+            border-radius: 3px;
+            padding: 15px;
+            margin-bottom: 20px;
+            margin-right: 15px;
+
+        }
+
+        #legend h4 {
+            margin: 0 0 10px;
+        }
+
+        #legend div span {
+            border-radius: 50%;
+            display: inline-block;
+            height: 10px;
+            margin-right: 5px;
+            width: 10px;
+        }
+
+        #chartContainer {
+            position: absolute;
+            bottom: 6px;
+            left: 6px;
+            background-color: transparent;
+            width: 30%;
+            border-radius: 3px;
+            padding: 0px;
+            margin-bottom: 0px;
+            margin-right: 0px;
+        }
+
+
+        #chartContainer p {
+            
+            margin-left: 10px;
+            margin-bottom: 10px;
+            margin-top: 0;
+            padding: 0;
+        }
+
+        #charttitle {
+            font: bold 15px Verdana, sans-serif;
+
+        }
+
+        #menu {
+            background: #fff;
+            position: absolute;
+            z-index: 1;
+            top: 10px;
+            right: 10px;
+            border-radius: 3px;
+            width: 120px;
+            border: 1px solid rgba(0, 0, 0, 0.4);
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        #menu a {
+            font-size: 13px;
+            color: #404040;
+            display: block;
+            margin: 0;
+            padding: 0;
+            padding: 10px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+            text-align: center;
+        }
+
+        #menu a:last-child {
+            border: none;
+        }
+
+        #menu a:hover {
+            background-color: #f8f8f8;
+            color: #404040;
+        }
+
+        #menu a.active {
+            background-color: #3887be;
+            color: #ffffff;
+        }
+
+        #menu a.active:hover {
+            background: #3074a4;
+        }
+    </style>
+
+</head>
+
+<body>
+    <nav id="menu"></nav>
+    <div id="map"></div>
+    
+    <div id="text">
+        <h2>San Francisco Bay Area Business and Housing Price 2019</h2>
+
+
+        <p class="credit" >
+            According to the data, Zipcode area 94103, 94107 and 94110 have the largest number of registered business in 2019. 
+             Also, the area with low and high price have relative small 
+             business number. On the opposite, most of the business 
+             locate in the area that have medium housing price. 
+
+
+        </p>
+    </div>
+
+    <div id="chartContainer">
+        <p id="charttitle">Housing price vs business number</p>
+        <p id="chartsubhead">Average housing price and registered business number in each zipcode area.</p>
+    </div>
+
+    <div id="legend">
+        <h4>Housing price (in dollars)</h4>
+        <div><span style="background-color: #723122"></span>6m</div>
+        <div><span style="background-color: #a25626"></span>4m</div>
+        <div><span style="background-color: #ca8323"></span>3m</div>
+        <div><span style="background-color: #e6b71e"></span>2m</div>
+        <div><span style="background-color: #f2f12d"></span>1m</div>
+        <div><span style="background-color: #ffffff"></span>27.9k</div>
+    </div>
+
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic2l5aWNhaSIsImEiOiJja3lpdzdsdTAxbHpmMm5xcG1iY3c5ejE1In0.rXpvhtoN7W76Q8cx0s-2eQ';
+
+        // Load a new map in the 'map' HTML div
+        var map = new mapboxgl.Map({
+            container: 'map', // container id
+            //style: 'mapbox://styles/mapbox/light-v10',
+            style: 'mapbox://styles/mapbox/light-v10',
+            center: [237.6, 37.6], // starting position [lng, lat]
+            zoom: 8.3 // starting zoom
+        });
+        map.addControl(new mapboxgl.NavigationControl()); //Adds zoom control
+
+
+        // disable map rotation using right click + drag
+        map.dragRotate.disable();
+
+        // disable map rotation using touch rotation gesture
+        map.touchZoomRotate.disableRotation();
+
+        map.on('load', function () {
+
+            d3.json("df_2019.json", function (BusinessData) {
+
+
+                //console.log(BusinessData);
+
+                // Get the size of our Businesses object (it is not using []s to define proper arrays)
+                businessCount = Object.keys(BusinessData).length;
+                // Let's see the size of this array
+                console.log("Number of businesses: " + businessCount);
+
+                var myGeojson = {};
+                myGeojson.type = 'FeatureCollection';
+                myGeojson.features = [];
+
+                // This is for a regex match a bit later for transforming the coordinates to a proper GeoJSON format
+                // I have used this source: https://www.regular-expressions.info/floatingpoint.html
+                const regex = /[-+]?[0-9]*\.?[0-9]+/g;
+
+
+                var i;
+                for (i = 0; i < businessCount; i++) {
+
+                    // DEBUG
+                    console.log("BusinessData[" + i + "] ID: " + BusinessData[i]["Location Id"] + " Coordinates: " + BusinessData[i]["Business Location"]);
+
+                    var ban = BusinessData[i]["Business Account Number"];
+                    var DBA_name = BusinessData[i]["DBA Name"];
+                    var address = BusinessData[i]["Street Address"];
+                    var zip = BusinessData[i]["Mail Zipcode"];
+                    var id = BusinessData[i]["Location Id"];
+
+                    // Getting the latitude and longitude from the "Business Location" field
+                    // We are using a regex to match all signed floating numbers in something
+                    // like POINT (-122.431206 37.74908) and use the values as lats and lons 
+
+                    var coordinates = [];
+                    var m;
+
+                    while ((m = regex.exec(BusinessData[i]["Business Location"])) !== null) {
+                        // This is necessary to avoid infinite loops with zero-width matches
+                        if (m.index === regex.lastIndex) {
+                            regex.lastIndex++;
+                        }
+                        // It will be the first element of our array / group
+                        coordinates.push(m[0]);
+                    }
+
+
+                    console.log("BusinessData[" + i + "] Extracted coordinates:" + coordinates);
+
+                    var newFeature = {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+
+                            "coordinates_bad": BusinessData[i]["Business Location"],
+                            // Now, use the "proper" coordinates as coordinates
+                            "coordinates": coordinates
+                        },
+                        "properties": {
+                            "Business Account Number": ban,
+                            "DBA Name": DBA_name,
+                            "id": id,
+                            "Street Address": address,
+                            "Zipcode": zip,
+
+                        }
+                    }
+                    myGeojson.features.push(newFeature);
+                }
+
+                // Dumping the resulting GeoJSON to the console  -- commented for now due to the size
+                console.log(myGeojson);
+                console.log(JSON.stringify(myGeojson));
+
+
+                // Adding the points to the map
+
+
+                map.addSource('Housing', {
+                    'type': 'vector',
+                    'url': 'mapbox://siyicai.97tr5cay'
+                });
+
+                map.addSource('points', {
+                    'type': 'geojson',
+                    'data': myGeojson,
+                    'cluster': true,
+                    'clusterMaxZoom': 16, // Max zoom to cluster points on
+                    'clusterRadius': 50
+                });
+
+                map.addLayer(
+                    {
+                        'id': 'Housing',
+                        'source': 'Housing',
+                        'source-layer': 'hpz-5gywiz',
+                        // 'maxzoom': zoomThreshold,
+                        'type': 'fill',
+                        'paint': {
+                            'fill-color': [
+                                'interpolate',
+                                ['linear'],
+                                ['get', 'Price'],
+                                279000,
+                                '#ffffff',
+                                1000000,
+                                '#F2F12D',
+                                2000000,
+                                '#E6B71E',
+                                3000000,
+                                '#CA8323',
+                                4000000,
+                                '#A25626',
+                                6000000,
+                                '#723122'
+                            ],
+                            'fill-opacity': 0.7,
+                            'fill-outline-color': '#999',
+                        }
+                    },
+                );
+
+
+
+
+                map.addLayer({
+                    id: 'Businesses',
+                    type: 'circle',
+                    source: 'points',
+                    filter: ['has', 'point_count'],
+                    paint: {
+                        // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+                        // with three steps to implement three types of circles:
+                        //   * Blue, 20px circles when point count is less than 100
+                        //   * Yellow, 30px circles when point count is between 100 and 750
+                        //   * Pink, 40px circles when point count is greater than or equal to 750
+                        'circle-opacity': 1,
+                        'circle-color': [
+                            'step',
+                            ['get', 'point_count'],
+                            '#84c1ff',
+                            100,
+                            '#fdf498',
+                            200,
+                            '#f37736',
+                            600,
+                            '#ee4035'
+                        ],
+                        'circle-radius': [
+                            'step',
+                            ['get', 'point_count'],
+                            20,
+                            100,
+                            30,
+                            400,
+                            40
+                        ]
+                    }
+                });
+
+                map.addLayer({
+                    id: 'cluster-count',
+                    type: 'symbol',
+                    source: 'points',
+                    filter: ['has', 'point_count'],
+                    layout: {
+                        'text-field': '{point_count_abbreviated}',
+                        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                        'text-size': 12
+                    }
+                });
+
+                map.addLayer({
+                    id: 'unclustered-point',
+                    type: 'circle',
+                    source: 'points',
+                    filter: ['!', ['has', 'point_count']],
+                    paint: {
+                        'circle-color': '#6ff734',
+                        'circle-opacity': 0.7,
+                        'circle-stroke-width': 0.1,
+                        'circle-stroke-color': '#999',
+                        'circle-stroke-opacity': 1,
+                        'circle-radius': {
+                            'base': 6,
+                            "stops": [
+                                // zoom is 5 -> circle radius will be 2px
+                                [6, 6],
+                                [10, 12],
+                                [12, 14],
+                                [20, 16],
+                            ]
+                        }
+                    }
+                });
+
+                // inspect a cluster on click
+                map.on('click', 'Businesses', (e) => {
+                    const features = map.queryRenderedFeatures(e.point, {
+                        layers: ['Businesses']
+                    });
+                    const clusterId = features[0].properties.cluster_id;
+                    map.getSource('points').getClusterExpansionZoom(
+                        clusterId,
+                        (err, zoom) => {
+                            if (err) return;
+
+                            map.easeTo({
+                                center: features[0].geometry.coordinates,
+                                zoom: zoom
+                            });
+                        }
+                    );
+                });
+
+                // When a click event occurs on a feature in
+                // the unclustered-point layer, open a popup at
+                // the location of the feature, with
+                // description HTML from its properties.
+
+
+
+                var popup = new mapboxgl.Popup({
+                    closeButton: false,
+                    closeOnClick: false
+                });
+
+                map.on('mouseenter', 'unclustered-point', function (e) {
+                    // Change the cursor style as a UI indicator.
+                    map.getCanvas().style.cursor = 'pointer';
+
+                    var coordinates = e.features[0].geometry.coordinates.slice();
+                    var description = "<p>DBA name: " + e.features[0].properties["DBA Name"] + "</p><p>Address: " + e.features[0].properties["Street Address"] + "</p><p>Business Account Number: " + e.features[0].properties["Business Account Number"] + "</p>";
+
+                    popup
+                        .setLngLat(coordinates)
+                        .setHTML(description)
+                        .addTo(map);
+
+                });
+
+                map.on('mouseleave', 'unclustered-point', function () {
+                    map.getCanvas().style.cursor = '';
+                    popup.remove();
+
+                });
+
+            });
+        });
+
+
+        var toggleableLayerIds = ['Housing'];
+        for (var i = 0; i < toggleableLayerIds.length; i++) {
+            var id = toggleableLayerIds[i];
+            var link = document.createElement('a');
+            link.href = '#';
+            link.className = 'active';
+            link.textContent = id;
+            link.onclick = function (e) {
+                var clickedLayer = this.textContent;
+                e.preventDefault();
+                e.stopPropagation();
+                var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+                if (visibility === 'visible') {
+                    map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+                    this.className = '';
+                } else {
+                    this.className = 'active';
+                    map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+                }
+            };
+            var layers = document.getElementById('menu');
+            layers.appendChild(link);
+        }
+
+
+
+
+
+
+
+    </script>
+
+    <script>
+
+        d3.csv("hpb.csv", function (CityData) {
+            var svg = dimple.newSvg("#chartContainer", 400, 300);
+            var myChart = new dimple.chart(svg, CityData);
+            myChart.setBounds(60, 15, 350, 250);
+            myChart.defaultColors = [
+                new dimple.color("#54aae3")
+            ];
+            var x = myChart.addMeasureAxis("x", "Housing Price");
+            var y = myChart.addMeasureAxis("y", "Business Number");
+            var s = myChart.addSeries(["Source Zipcode"], dimple.plot.bubble);
+
+            myChart.draw(500);
+            svg.selectAll("path.domain").style("stroke", "#CCC");
+            svg.selectAll("g.tick line").style("stroke", "#CCC");
+        });
+
+    </script>
+
+
+</body>
+
+
+</body>
+
+</html>

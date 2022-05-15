@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>global_cities</title>
+		<script src="https://d3js.org/d3.v7.min.js"></script>
+		<style>
+			body {
+				overflow: hidden;
+				margin: 0;
+				padding: 0;
+			}
+
+			.oparea {
+				display: flex;
+				line-height: 3em;
+				position: fixed;
+				justify-content: space-between;
+				top: 0;
+				left: 0;
+				right: 0;
+				background: rgba(255, 255, 255, 0.6);
+			}
+
+			.item {
+				padding-right: 2em;
+				padding-left: 2em;
+			}
+
+			#map {
+				width: 100%;
+				height: 100%;
+			}
+
+			#tips {
+				z-index: 10;
+				position: absolute;
+				background: rgba(255, 255, 255, 0.8);
+			}
+
+			#tips p {
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.citynameTip {
+				display: block;
+				text-align: center;
+				line-height: 3em;
+				font-weight: 700;
+			}
+
+			#tips p span {
+				display: block;
+				padding: 0 2em;
+			}
+
+			#cityQuicker {
+				position: fixed;
+				bottom: 0;
+				left: 1em;
+				background-color: rgba(255, 255, 255, 0.8);
+			}
+
+			#cityQuicker span {
+				-ms-user-select: none;
+				-moz-user-select: none;
+				-webkit-user-select: none;
+				line-height: 3em;
+				color: white;
+				padding: 0.5em 1em;
+				background-color: rgba(255, 196, 57, 0.8);
+				border-radius: 0.8em;
+				cursor: pointer;
+			}
+
+			#city2show {
+				background-color: rgba(255, 85, 0, 0.8) !important;
+			}
+
+			#city1show {
+				background-color: rgba(0, 85, 255, 0.8) !important;
+			}
+
+			.mainCity {
+				position: fixed;
+				left: 1em;
+				top: 6em;
+				display: flex;
+				flex-direction: column;
+				background: rgba(255, 255, 255, 0.8);
+				padding: 2em 2em;
+				cursor: pointer;
+			}
+
+			#imgShowRightTop {
+				position: absolute;
+				top: 48px;
+				right: 0px;
+			}
+
+			#imgShowRightTop img {
+				width: 500px;
+			}
+
+			.showColoeTips {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				padding-right: 2em;
+			}
+
+			.showtipssvg {
+				display: flex;
+				align-items: center;
+				flex-direction: column;
+			}
+
+			.mainCity span {
+				line-height: 3em;
+			}
+			#opacity1 {
+				opacity: 0.8;
+				filter: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="oparea">
+			<div style="display: flex;">
+				<div class="item">
+					<label>year</label>
+					<select id="year" name="year">
+						<option value="all">all</option>
+					</select>
+				</div>
+				<div class="item">
+					<label>city</label>
+					<select id="city" name="city">
+					</select>
+				</div>
+			</div>
+			<div class="showColoeTips">
+				<span>Lowest</span>
+				<div class="showtipssvg">
+					<svg id="colorTips" width="240" height="40"></svg>
+				</div>
+				<span>Highest</span>
+			</div>
+		</div>
+		<div id="map">
+
+		</div>
+		<div id="cityQuicker">
+			<span id="city1show"></span>
+			<span id="city2show"></span>
+			<span id="city3show"></span>
+		</div>
+		<div id="tips">
+
+		</div>
+		<!-- <div id="imgShowRightTop"><img id='opacity1' src="20220513210156.png"></div> -->
+		<div class="mainCity">
+			<h4>Main City</h4>
+			<span class="maincityItem">Los Angeles, CA, United States</span>
+			<span class="maincityItem">Hong Kong, Hong Kong</span>
+			<span class="maincityItem">San Francisco, CA, United States</span>
+			<span class="maincityItem">Beijing, China</span>
+			<span class="maincityItem">London, United Kingdom</span>
+			<span class="maincityItem">Shanghai, China</span>
+		</div>
+		<script>
+			function drawMap(mapdata, markers, colorscale, year = "all", city = "all") {
+				var svg = d3.select("#map").select("svg");
+				var svgHeight = 1.0 * document.body.clientHeight;
+				var svgWidth = 1.0 * document.body.clientWidth;
+				var svgHeight = svgWidth * 7 / 9;
+				if (svg.empty()) {
+					svg = d3.select("#map")
+						.append("svg")
+						.attr("width", svgWidth)
+						.attr("height", svgHeight)
+						.attr("viewBox", "0 0 " + svgWidth + " " + svgHeight)
+						.attr("preserveAspectRatio", "xMidYMid meet");
+				}
+				var svgG = svg.append("g").attr("id", "svgG").attr("x", 0).attr("y", 0).attr("scale", 1);
+				d3.select("#map").select('svg').call(d3.zoom().on("start", function(event) {
+					//event.transform.k = svgG.attr("scale");
+					d3.select("#svgG")
+						.attr("xv", event.sourceEvent.x)
+						.attr("yv", event.sourceEvent.y)
+
+					//svgG.attr("transform", "translate(" + (svgG.attr("x")) + "," + (svgG.attr("y")  ) + ") scale(" + svgG.attr("scale") + ")")
+					//svgG.attr('transform', event.transform);
+					//d3.select("#svgG").attr("transform","scale(1)");
+				}).on('zoom', function(event) {
+					/*var currentTransform = d3.select("#svgG").attr("transform");
+					var beforeX = 0;
+					var beforeY = 0;
+					console.log("currentTransform", currentTransform);
+					if (currentTransform) {
+						var matchinfo = currentTransform.match(/translate\(((-)?\d+(\.\d+)?,(-)?\d+(\.\d+)?)\)/);
+						console.log("matchinfo", matchinfo)
+						if (matchinfo && matchinfo.length > 1) {
+							beforeX = matchinfo[1].split(',')[0] * 1.0
+							beforeY = matchinfo[1].split(',')[1] * 1.0
+						}
+					}*/
+					var xCoor = event.sourceEvent.x - d3.select("#svgG")
+						.attr("xv");
+					var yCoor = event.sourceEvent.y - d3.select("#svgG")
+						.attr("yv");
+
+					var currentTransform = d3.select("#svgG").attr("transform");
+					var beforeX = 0;
+					var beforeY = 0;
+					if (currentTransform) {
+						var matchinfo = currentTransform.match(/translate\(((-)?\d+(\.\d+)?,(-)?\d+(\.\d+)?)\)/);
+						console.log("matchinfo", matchinfo)
+						if (matchinfo && matchinfo.length > 1) {
+							beforeX = matchinfo[1].split(',')[0] * 1.0
+							beforeY = matchinfo[1].split(',')[1] * 1.0
+						}
+					}
+					console.log(event, beforeX, xCoor, beforeY, yCoor)
+					d3.select("#svgG")
+						.attr("xv", event.sourceEvent.x)
+						.attr("yv", event.sourceEvent.y)
+						.attr("transform", "translate(" + (beforeX + xCoor) + "," + (beforeY + yCoor) + ") scale(" +
+							event.transform.k + ")").attr("scale", event.transform.k);
+
+					/*if(event.sourceEvent.type == "mousemove"){
+						return ;
+					}*/
+					//svgG.attr("transform", "translate(" + (event.transform.x) + "," + (event.transform.y  ) + ") scale(" + event.transform.k + ")").attr("x",event.transform.x).attr("y",event.transform.y).attr("scale",event.transform.k);
+					//svgG.attr('transform', event.transform);
+				}));
+
+				svg.call(d3.drag()
+					.on('start', function() {
+						d3.select("#svgG")
+							.attr("x", event.x)
+							.attr("y", event.y)
+					})
+					.on('drag', function(event) {
+						var xCoor = event.x - d3.select("#svgG")
+							.attr("x");
+						var yCoor = event.y - d3.select("#svgG")
+							.attr("y");
+
+						var currentTransform = d3.select("#svgG").attr("transform");
+						var beforeX = 0;
+						var beforeY = 0;
+						if (currentTransform) {
+							var matchinfo = currentTransform.match(/translate\(((-)?\d+(\.\d+)?,(-)?\d+(\.\d+)?)\)/);
+							console.log("matchinfo", matchinfo)
+							if (matchinfo && matchinfo.length > 1) {
+								beforeX = matchinfo[1].split(',')[0] * 1.0
+								beforeY = matchinfo[1].split(',')[1] * 1.0
+							}
+						}
+
+						d3.select("#svgG")
+							.attr("x", event.x)
+							.attr("y", event.y)
+							.attr("transform", "translate(" + (beforeX + xCoor) + "," + (beforeY + yCoor) + ") scale(" +
+								svgG.attr("scale") + ")");
+					})
+					.on('end', function(event) {
+
+					})
+				)
+
+
+
+				var firstCenter = markers.get(window.cityArr[0])
+				var projection = d3.geoMercator().translate([svgWidth / 2, svgHeight / 2]).scale(svgWidth / 2).center([
+					firstCenter[0].longitude, firstCenter[0].latitude
+				]);
+				var path = d3.geoPath().projection(projection);
+
+				var countries = svgG.append("g").attr("id", "countries");
+				countries.selectAll("path")
+					.data(mapdata.features)
+					.enter()
+					.append("path")
+					.attr("d", path)
+					.attr("class", "continent")
+					.style("stroke", "gray")
+					.attr("contry", d => d.properties.name ? d.properties.name : "")
+					.style("fill", function(d) {
+						return "rgba(141,141,168,0.2)";
+					});
+
+				var makersG = svgG.append("g").attr("id", "makers").attr("class", "makers");
+				var makersGs = makersG.selectAll("g")
+					.data(markers.entries())
+					.enter()
+					.append("g")
+					.attr('transform', (v, i) => {
+						//console.log(v, i)
+						let xy = projection([v[1][0].longitude * 1.0, v[1][0].latitude * 1.0]);
+						return `translate(${xy[0]} ${xy[1]})`;
+					})
+
+				makersGs.append('circle')
+					.attr("class", "cityCircle")
+					.attr("id", (v, i) => {
+						return v[0].replaceAll(", ", "_").replaceAll(" ", "_").replaceAll("(", "").replaceAll(")", "");
+					})
+					.style("fill", (v, i) => {
+						if (year != "all") {
+							var showRecord;
+							v[1].forEach((d, e) => {
+								if (d.Year == year) {
+									showRecord = d;
+								}
+							})
+							return colorscale(showRecord["Price To Income Ratio"]);
+						}
+						return colorscale(d3.sum(v[1], d => d["Price To Income Ratio"]) / v[1].length);
+					})
+					.attr("r", (v, i) => {
+						if (city != "all") {
+							if (v[0] == city) {
+								return 20;
+							}
+						}
+						return 10;
+					}).attr("opacity", (v, i) => {
+						if (year != "all") {
+							var show = false;
+							v[1].forEach((d, e) => {
+								if (d.Year == year) {
+									show = true;
+								}
+							})
+							if (show) {
+								return 1;
+							} else {
+								return 0;
+							}
+						}
+						return 1;
+					}).on("mouseover", function(d) {
+						var layerX = d.layerX;
+						var layerY = d.layerY;
+						var tips = document.querySelector("#tips");
+						tips.innerHTML = "";
+						var cityName = d.target.__data__[0];
+						var span = document.createElement("span");
+						span.setAttribute("class", "citynameTip");
+						span.innerHTML = cityName
+						tips.appendChild(span);
+						var hr = document.createElement("hr");
+						tips.appendChild(hr);
+						var values = d.target.__data__[1];
+						values = values.sort((d2, d1) => {
+							if (d2.Year > d1.Year) {
+								return 1;
+							}
+							if (d2.Year > d1.Year) {
+								return 0;
+							}
+							if (d2.Year > d1.Year) {
+								return -1;
+							}
+						})
+						var p0 = document.createElement("p");
+						var span01 = document.createElement("span");
+						span01.innerHTML = "Year";
+						p0.appendChild(span01);
+
+						var span02 = document.createElement("span");
+						span02.innerHTML = "Price To Income Ratio";
+						p0.appendChild(span02);
+						tips.appendChild(p0);
+
+						values.forEach(d => {
+							var p = document.createElement("p");
+							var span1 = document.createElement("span");
+							span1.innerHTML = d.Year;
+							p.appendChild(span1);
+
+							var span2 = document.createElement("span");
+							span2.innerHTML = d["Price To Income Ratio"];
+							p.appendChild(span2);
+							tips.appendChild(p);
+						})
+						tips.style.top = layerY + "px"
+						tips.style.left = (layerX * 1 + 5) + "px"
+						//console.log(d)
+					}).on("mouseout", function(d) {
+						var tips = document.querySelector("#tips");
+						tips.innerHTML = "";
+					})
+			}
+
+			function ready(mapdata, cityHouseIncode) {
+				/*var colorValues = ["rgb(255, 199, 185)", "rgb(240, 173, 151)", "rgb(240, 162, 125)", "rgb(240, 134, 99)",
+					"rgb(240, 116, 75)", "rgb(240, 85, 57)", "rgb(240, 76, 35)", "rgb(240, 51, 13)",
+					"rgb(240, 27, 7)", "rgb(208, 21, 4)", "rgb(180, 17, 2)", "rgb(99, 8, 0)",
+				];*/
+
+				/* var colorValues = ["rgb(251,234,177)", "rgb(246,215,143)", "rgb(235,182,99)", "rgb(234,147,77)",
+					"rgb(225,95,55)", "rgb(201,55,46)", "rgb(171,36,47)",
+				];*/
+				var colorValues = ["rgb(255,255,156)", "rgb(255,255,95)", "rgb(250,225,75)", "rgb(245, 185, 64)",
+					"rgb(237,146,53)", "rgb(236, 107, 45)", "rgb(235, 72, 38)",
+					"rgb(232, 53, 35)", "rgb(204, 43, 29)", "rgb(166,33,22)", "rgb(128,23,14)",
+					"rgb(91,16,7)",
+
+				];
+
+				d3.select('#colorTips').append('g').selectAll("rect").data(colorValues)
+					.enter()
+					.append("rect")
+					.attr("width", 20)
+					.attr("height", 30)
+					.attr("x", (d, i) => 20 * i + 4)
+					.attr("y", 0)
+					.attr("fill", d => d)
+				var colorscale = d3.scaleQuantize()
+					.domain(d3.extent(cityHouseIncode, d => d["Price To Income Ratio"]))
+					.range(colorValues);
+
+				var clearCityHouseIncode = d3.group(cityHouseIncode, d => {
+					return d.City;
+				})
+				var yearsObj = [];
+				var citysObj = [];
+				cityHouseIncode.forEach(d => {
+					yearsObj[d.Year] = 1;
+					citysObj[d.City] = 1;
+				})
+
+				var yearDom = document.querySelector('#year');
+				var cityDom = document.querySelector("#city");
+
+				for (var prop in yearsObj) {
+					var option = document.createElement('option');
+					option.setAttribute("value", prop)
+					option.innerHTML = prop;
+					yearDom.appendChild(option)
+				}
+				var cityArr = []
+				for (var prop in citysObj) {
+
+					cityArr.push(prop)
+				}
+				cityArr = cityArr.sort(function(a, b) {
+					return a.toLowerCase().localeCompare(b.toLowerCase());
+				});
+				cityArr.forEach((d) => {
+					var option = document.createElement('option');
+					option.setAttribute("value", d)
+					option.innerHTML = d;
+					cityDom.appendChild(option)
+				})
+				window.cityindex = 1;
+				window.cityArr = cityArr;
+				d3.selection.prototype.moveToFront = function() {
+					return this.each(function() {
+						this.parentNode.appendChild(this);
+					});
+				};
+
+				function showCityCenter(city) {
+					//d3.select("#svgG").attr("transform","scale(1)");
+					currentCity = city;
+					var selectId = currentCity.replaceAll(", ", "_").replaceAll(" ", "_").replaceAll("(", "").replaceAll(")",
+						"");
+
+					var offsetY = d3.select("svg").node().getBoundingClientRect().height / 2 -
+						d3.select("#" + selectId).node().getBoundingClientRect().top;
+
+					var offsetX = d3.select("svg").node().getBoundingClientRect().width / 2 -
+						d3.select("#" + selectId).node().getBoundingClientRect().left;
+					var currentTransform = d3.select("#svgG").attr("transform");
+					var beforeX = 0;
+					var beforeY = 0;
+					console.log("currentTransform", currentTransform);
+					if (currentTransform) {
+						var matchinfo = currentTransform.match(/translate\(((-)?\d+(\.\d+)?,(-)?\d+(\.\d+)?)\)/);
+						console.log("matchinfo", matchinfo)
+						if (matchinfo && matchinfo.length > 1) {
+							beforeX = matchinfo[1].split(',')[0] * 1.0
+							beforeY = matchinfo[1].split(',')[1] * 1.0
+						}
+					}
+					d3.select("#svgG").attr("x", beforeX + offsetX).attr("y", beforeY + offsetY).attr("transform", "translate(" +
+						(beforeX + offsetX) + "," + (beforeY + offsetY) + ") scale(" + d3.select("#svgG").attr("scale") + ")"
+					);
+					d3.selectAll('.cityCircle').attr("r", 10).style("stroke", "none");
+					d3.selectAll('#' + selectId).attr("r", 20).style("stroke", "yellow");
+					d3.selectAll('#' + selectId).moveToFront();
+				}
+
+
+				var city1show = document.querySelector("#city1show");
+				city1show.innerHTML = cityArr[0]
+				city1show.addEventListener("click", function(event) {
+					showCityCenter(document.querySelector("#city1show").innerText.replace("<< ", ""));
+					if (window.cityindex > 2) {
+						window.cityindex--;
+						var frontSpan = "";
+						if (window.cityindex - 3 >= 0) {
+							frontSpan = "&lt;&lt; "
+						}
+						var backSpan = "";
+						if (window.cityindex + 1 <= window.cityArr.length + 1) {
+							backSpan = " &gt;&gt;"
+						}
+						document.querySelector("#city1show").innerHTML = frontSpan + window.cityArr[window.cityindex - 2]
+						document.querySelector("#city2show").innerHTML = window.cityArr[window.cityindex - 1]
+						document.querySelector("#city3show").innerHTML = window.cityArr[window.cityindex] + backSpan
+					}
+
+				})
+				var city2show = document.querySelector("#city2show");
+				city2show.innerHTML = cityArr[1]
+				city2show.addEventListener("click", function(event) {
+					showCityCenter(document.querySelector("#city2show").innerText.replace("<< ", ""));
+				})
+				var city3show = document.querySelector("#city3show");
+				city3show.innerHTML = cityArr[2] + " >>"
+				city3show.addEventListener("click", function(event) {
+					showCityCenter(document.querySelector("#city3show").innerText.replace(" >>", ""));
+					if (window.cityindex < window.cityArr.length - 1) {
+						window.cityindex++;
+						var frontSpan = "";
+						if (window.cityindex - 3 >= 0) {
+							frontSpan = "&lt;&lt; "
+						}
+						var backSpan = "";
+						if (window.cityindex + 1 <= window.cityArr.length + 1) {
+							backSpan = " &gt;&gt;"
+						}
+						document.querySelector("#city1show").innerHTML = frontSpan + window.cityArr[window.cityindex - 2]
+						document.querySelector("#city2show").innerHTML = window.cityArr[window.cityindex - 1]
+						document.querySelector("#city3show").innerHTML = window.cityArr[window.cityindex] + backSpan
+					}
+				})
+				document.querySelector("#city").addEventListener("change", function(e) {
+					var currentCity = e.target.value;
+					var selectIndex = 0;
+					window.cityArr.forEach((d, i) => {
+						if (d == currentCity) {
+							selectIndex = i + 1;
+						}
+					})
+					if (selectIndex > 2 && selectIndex < window.cityArr.length - 1) {
+						window.cityindex = selectIndex
+						var frontSpan = "";
+						if (window.cityindex - 3 >= 0) {
+							frontSpan = "&lt;&lt; "
+						}
+						var backSpan = "";
+						if (window.cityindex + 1 <= window.cityArr.length + 1) {
+							backSpan = " &gt;&gt;"
+						}
+
+						document.querySelector("#city1show").innerHTML = frontSpan + window.cityArr[window.cityindex - 2]
+						document.querySelector("#city2show").innerHTML = window.cityArr[window.cityindex - 1]
+						document.querySelector("#city3show").innerHTML = window.cityArr[window.cityindex] + backSpan
+					} else {
+						if (selectIndex <= 2) {
+							window.cityindex = 2
+							document.querySelector("#city1show").innerHTML = frontSpan + window.cityArr[0]
+							document.querySelector("#city2show").innerHTML = window.cityArr[1]
+							document.querySelector("#city3show").innerHTML = window.cityArr[2] + " >>"
+						}
+						if (selectIndex >= selectIndex < window.cityArr.length - 1) {
+							window.cityindex = window.cityArr.length - 2
+							console.log(window.cityArr[window.cityArr.length - 3])
+							document.querySelector("#city1show").innerHTML = "&lt;&lt; " + window.cityArr[window.cityArr
+								.length - 3]
+							document.querySelector("#city2show").innerHTML = window.cityArr[window.cityArr.length - 2]
+							document.querySelector("#city3show").innerHTML = window.cityArr[window.cityArr.length - 1]
+						}
+					}
+
+
+					showCityCenter(currentCity);
+				})
+
+				document.querySelector("#year").addEventListener("change", function(e) {
+					var currentYear = e.target.value;
+					d3.selectAll('.cityCircle').each(function(d) {
+						if (currentYear != 'all') {
+							var nowRecord;
+							d3.select(this).node().__data__[1].forEach(d => {
+								if (d.Year == currentYear) {
+									nowRecord = d;
+								}
+							})
+							if (nowRecord) {
+								d3.select(this).transition()
+									.attr("opacity", 1)
+									.style("fill", colorscale(nowRecord["Price To Income Ratio"]))
+							} else {
+								d3.select(this).transition()
+									.attr("opacity", 0)
+							}
+						} else {
+							d3.select(this).transition()
+								.attr("opacity", 1)
+								.style("fill", colorscale(d3.sum(d3.select(this).node().__data__[1], d => d[
+										"Price To Income Ratio"]) / d3.select(this).node().__data__[1]
+									.length))
+						}
+					})
+				})
+				drawMap(mapdata, clearCityHouseIncode, colorscale);
+				showCityCenter(window.cityArr[window.cityindex - 1]);
+				document.querySelectorAll(".maincityItem").forEach(d => {
+					console.log(d)
+					d.addEventListener('click', function(event) {
+						console.log(event)
+						showCityCenter(event.target.innerText);
+					})
+				})
+			}
+			var world_map = d3.json("custom.geo.mediam.json");
+			var cityHouseIncode = d3.csv("city_house_income_lng_lat.csv");
+			Promise.all([
+				world_map,
+				cityHouseIncode
+			]).then(
+				function(values) {
+					//values[0] mapdata  values[1]city house income
+					ready(values[0], values[1]);
+				}
+			);
+		</script>
+	</body>
+</html>

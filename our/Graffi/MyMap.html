@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>Map of the relationship between house prices and graffiti distribution in San Francisco</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <script src="jquery-3.6.0.min.js"></script>
+    <script src="mapbox-gl.js"></script>
+    <link href="mapbox-gl.css" rel="stylesheet">
+
+    <style type="text/css">
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+        }
+
+        .headBox {
+            position: absolute;
+            height: 48px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            z-index: 9999;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            background-color: rgba(127, 255, 212, 0.61);
+            align-items: center;
+            text-align: center;
+        }
+
+        .headText {}
+
+        #dateSlider {
+            width: 40%;
+        }
+
+        .map-overlay {
+            position: absolute;
+            background: rgba(255, 255, 250, 0.9);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            font-family: Arial, sans-serif;
+            border-radius: 3px;
+        }
+
+        .timeSelect {
+            left: 20px;
+            top: 60px;
+            height: 120px;
+            width: 320px;
+        }
+
+        .layerSelect {
+            left: 20px;
+            top: 200px;
+            height: 200px;
+            width: 320px;
+        }
+
+        /* #legend {
+            padding: 10px;
+            line-height: 18px;
+            height: 160px;
+            margin-bottom: 40px;
+            width: 120px;
+            bottom: 0;
+            right: 0;
+            margin-right: 20px;
+        } */
+
+        .legend-key {
+            display: inline-block;
+            border-radius: 20%;
+            width: 10px;
+            height: 10px;
+            margin-right: 5px;
+        }
+
+        .mapboxgl-popup {
+            max-width: 100px;
+            font: 9px/10px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        .map-overlay- {
+            position: absolute;
+            /*            background: rgba(255, 255, 250, 0.9);*/
+            /*            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);*/
+            font-family: Arial, sans-serif;
+            border-radius: 3px;
+        }
+
+        .legendBox {
+            position: absolute;
+            /*            background: rgba(255, 255, 250, 0.9);*/
+            /*            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);*/
+
+            font-family: Arial, sans-serif;
+            border-radius: 3px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 10px;
+            bottom: 16px;
+            right: 4px;
+            background-color: #ffffff;
+        }
+
+        .graffiti_legend {
+            margin-left: 4px;
+        }
+
+        .legend-sec-box {
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 2px;
+
+        }
+
+        .legend-poi {
+            width: 14px;
+            height: 14px;
+            border-radius: 8px;
+            margin-left: 4px;
+        }
+
+        .legend-text {
+
+            margin-left: 4px;
+
+        }
+
+        #total {
+            left: 0;
+            margin-left: 20px;
+            bottom: 0;
+            /*            height: 120px;*/
+            margin-bottom: 40px;
+            width: 360px;
+            /*            color: #0f6de2;*/
+            color: rgba(55, 142, 181, 1.0);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .clickButton {
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            /* text-align: center; */
+            /* padding: 4px; */
+            background-color: aquamarine;
+            cursor: pointer;
+        }
+
+        .disableClick {
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            background-color: rgb(103, 104, 104);
+            cursor: not-allowed
+        }
+
+        .splitLine {
+            height: 1px;
+            background-color: #969999;
+            width: 100%;
+            margin-top: 2px;
+            margin-bottom: 12px;
+        }
+
+        .checkbox {
+            margin-top: 8px;
+        }
+
+        .splitLine_legend {
+            height: 1px;
+            background-color: #969999;
+            width: 100%;
+            margin-top: 2px;
+            margin-bottom: 4px;
+        }
+
+        .poiTypeSelectBox {
+            height: 24px;
+            width: 180px;
+            border: 1px solid aqua;
+            text-align: center;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body data-new-gr-c-s-check-loaded="14.1050.0" data-gr-ext-installed="">
+    <!-- <div class='headBox'>
+        <h2 class="headText">Map of the relationship between house prices and graffiti distribution in San Francisco
+        </h2>
+    </div> -->
+    <div id="map" class="mapboxgl-map">
+        <div class="mapboxgl-canary" style="visibility: hidden;"></div>
+        <div class="mapboxgl-canvas-container mapboxgl-interactive mapboxgl-touch-drag-pan mapboxgl-touch-zoom-rotate">
+            <canvas class="mapboxgl-canvas" tabindex="0" aria-label="Map" role="region" width="2592" height="1200"
+                style="width: 1296px; height: 600px; cursor: default;"></canvas>
+        </div>
+        <div class="mapboxgl-control-container">
+            <div class="mapboxgl-ctrl-top-left"></div>
+            <div class="mapboxgl-ctrl-top-right"></div>
+            <div class="mapboxgl-ctrl-bottom-left">
+                <div class="mapboxgl-ctrl" style="display: block;"><a class="mapboxgl-ctrl-logo" target="_blank"
+                        rel="noopener nofollow" href="https://www.mapbox.com/" aria-label="Mapbox logo"></a></div>
+            </div>
+            <div class="mapboxgl-ctrl-bottom-right">
+                <div class="mapboxgl-ctrl mapboxgl-ctrl-attrib"><button class="mapboxgl-ctrl-attrib-button"
+                        title="Toggle attribution" aria-label="Toggle attribution"></button>
+                    <div class="mapboxgl-ctrl-attrib-inner" role="list"><a href="https://www.mapbox.com/about/maps/"
+                            target="_blank" title="Mapbox" aria-label="Mapbox" role="listitem">© Mapbox</a> <a
+                            href="https://www.openstreetmap.org/about/" target="_blank" title="OpenStreetMap"
+                            aria-label="OpenStreetMap" role="listitem">© OpenStreetMap</a> <a class="mapbox-improve-map"
+                            href="https://apps.mapbox.com/feedback/?owner=mengqingzhao&amp;id=ckoqcdvz57jo917o2jdq96bnq&amp;access_token=pk.eyJ1IjoibWVuZ3Fpbmd6aGFvIiwiYSI6ImNrbHloY2lvejFsdHAyd28zMnVwZGszaHcifQ.T8viEchUMVha2Cr2S8-1-Q"
+                            target="_blank" title="Map feedback" aria-label="Map feedback" role="listitem"
+                            rel="noopener nofollow">Improve this map</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <center class="map-overlay timeSelect" id="features">
+        <h3 style="height: 8px;"> BayRegion Historical house price </h3>
+        <div class="splitLine"></div>
+        <label id="year">in 1994-04</label>
+        <input id="dateSlider" type="range" min=0 max=246 step=1 value="0" onchange="selectDate(value)">
+        <button id="startButton" class="clickButton" value="false" onclick="startAnimaton()">▶</input>
+            <button id="stopButton" class="clickButton" value="false"
+                style="font-size: 17px;padding: 0;margin-left: 4px;" onclick="stopAnimation()">■</input>
+                <!-- <input id="stopButton"  class="clickButton" type="button" value="■"  onclick="stopAnimation()"> -->
+    </center>
+    <center class="map-overlay layerSelect" id="layerSelect">
+        <h3 style="height: 8px;">Select Layers </h3>
+        <div class="splitLine"></div>
+        <form style="display: flex; flex-direction: column; align-items: flex-start;padding-left: 24px;" action=''
+            method="get">
+            <label><input name="BayRegion" id = 'BayRegion_check' type="checkbox" value="BayRegion" class="checkbox" id="BayRegionCheck"
+                    onchange="onSelectLayers(value)" />historical housing price</label>
+            <!-- <label><input name="Fruit" type="checkbox" value="SFRegion" class="checkbox"
+                    onchange="onSelectLayers(value)" />SF Region Layer </label> -->
+            <label><input name="SFRegion" id = 'SFRegion_check' type="checkbox" value="SFRegion" checked='true' class="checkbox"
+                    onchange="onSelectLayers(value)" />2019 house price</label>
+            <label><input name="Graffiti" id = 'Graffiti_check' type="checkbox" value="Graffiti" checked='true' class="checkbox"
+                    onchange="onSelectLayers(value)" />Graffiti Layer  </label>
+            <!-- <label><input name="Fruit" type="checkbox" value="" />梨 </label> -->
+        </form>
+        <br />
+        <label for="poiTypeSelectBox" style="font-size:18px;font-weight:500;color:rgb(0, 110, 255)"> Graffiti
+            Type:</label>
+        <select class="poiTypeSelectBox" name="poiTypeSelectBox" id="poiTypeSelectBox"
+            onchange="onselectPoisType(value)">
+            <option value="All">residential building</option>
+            <option value="Offensive">residential building offensive</option>
+            <option value="Not_Offensive">residential building not offensive</option>
+
+
+        </select>
+        
+    </center>
+
+    <div class="legendBox">
+        <div class="price_legend" id="legend"><b>House Price / $</b>
+            <div class="splitLine_legend"></div>
+            <div><span class="legend-key" style="background-color: #8e9292;"></span><span>NoData</span></div>
+        </div>
+        <div class="graffiti_legend" id='graffiti_legend' style="display: none;"><b>Amount Of Graffiti Points</b>
+            <div class="splitLine_legend"></div>
+            <div class="legend-sec-box ">
+                <div class="legend-poi" style="background-color:  #078700;"></div><span class="legend-text">0-100</span>
+            </div>
+            <div class="legend-sec-box ">
+                <div class="legend-poi" style="background-color: #42E73A;"></div><span
+                    class="legend-text">100-200</span>
+            </div>
+            <div class="legend-sec-box ">
+                <div class="legend-poi" style="background-color: #CFF76F;"></div><span
+                    class="legend-text">200-400</span>
+            </div>
+            <div class="legend-sec-box ">
+                <div class="legend-poi" style="background-color: #FFFC73;"></div><span
+                    class="legend-text">400-600</span>
+            </div>
+            <div class="legend-sec-box ">
+                <div class="legend-poi" style="background-color: #FF3100;"></div><span
+                    class="legend-text">600-850</span>
+            </div>
+            <div class="legend-sec-box ">
+                <div class="legend-poi" style="background-color: #A62000;"></div><span class="legend-text">850 +</span>
+            </div>
+           
+            <!-- <div class="legend-sec-box "><div class="legend-poi" style="background-color: #;"></div><span class="legend-text">200+</span></div> -->
+        </div>
+
+    </div>
+
+
+    <!-- <div class="map-overlay-" id="total">
+        <h1 id="total-1">2014</h1>
+        <h2 id="total-2">Total number: 1,736</h2>
+    </div> -->
+
+    <script>
+
+        let currentLayerName = 'BayRegion'
+        let currentDate = "1996-04"
+        let poisDataG = undefined
+        const initZoom = 11.5
+        function createCircleLayer(url, layerName, initField, baseMap) {
+            let XMLHttp;
+            let resultJson;
+            if (window.XMLHttpRequest) {
+                XMLHttp = new XMLHttpRequest();
+            } else if (window.ActiveXObject) {
+                XMLHttp = new window.ActiveXObject();
+            } else {
+                alert("请升级至最新版本的浏览器");
+            }
+            if (XMLHttp != null) {
+                XMLHttp.open("GET", url, true);
+                XMLHttp.send(null);
+                XMLHttp.onreadystatechange = async function () {
+                    if (XMLHttp.readyState == 4 && XMLHttp.status == 200) {
+                        poisDataG = await JSON.parse(XMLHttp.responseText);
+                        // console.log(poisDataG, '0000000000000');
+                        const geometryType = poisDataG.features[0].geometry.type
+                        // console.log(geometryType,'geometryTypegeometryType');
+
+                        const clusterPoi = {
+                            "type": "geojson",
+                            "data": poisDataG,
+                            cluster: true,
+                            clusterMaxZoom: 19, // Max zoom to cluster points on
+                            clusterRadius: 10 // Radius of each cluster when clustering points (defaults to 50)
+                        }
+                        baseMap.addLayer({
+                            'id': layerName,
+                            'type': 'circle',
+                            'source': clusterPoi,
+                            'layout': {
+                                'visibility': 'visible',
+                                // 'text-field': '{point_count}',
+                                // 'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                                // 'text-size': 12
+                            },
+                            filter: ['has', 'point_count'],
+                            paint: {
+                                // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+                                // with three steps to implement three types of circles:
+                                //   * Blue, 20px circles when point count is less than 100
+                                //   * Yellow, 30px circles when point count is between 100 and 750
+                                //   * Pink, 40px circles when point count is greater than or equal to 750
+                                'circle-color': [
+                                    'step',
+                                    ['get', 'point_count'],
+                                    '#078700', 100,
+                                    '#42E73A', 200,
+                                    '#CFF76F', 400,
+                                    '#FFFC73', 600,
+                                    '#FF3100', 850,
+                                    '#A62000',
+
+                                ],
+                                'circle-radius': 5,
+                            }
+                        });
+                        function addSymbolLayer() {
+                            baseMap.addLayer({
+                                id: layerName + '_label',
+                                type: 'symbol',
+                                source: clusterPoi,
+                                filter: ['has', 'point_count'],
+                                layout: {
+                                    'visibility': 'visible',
+                                    'text-field': '{point_count_abbreviated}',
+                                    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                                    'text-size': 20
+                                },
+                                paint: {
+                                    'text-color': '#FFFFFF',
+                                },
+                            });
+                        }
+                        setTimeout(addSymbolLayer, 5000)
+
+
+                    }
+                }
+            }
+
+        }
+
+        async function createFillLayer(url, layerName, initField, baseMap) {
+            // console.log(url, layerName, initField, baseMap,'=======================');
+            let XMLHttp;
+            let resultJson;
+            if (window.XMLHttpRequest) {
+                XMLHttp = new XMLHttpRequest();
+            } else if (window.ActiveXObject) {
+                XMLHttp = new window.ActiveXObject();
+            } else {
+                alert("Please upgrade your browser");
+            }
+            if (XMLHttp != null) {
+                XMLHttp.open("GET", url, true);
+                XMLHttp.send(null);
+                XMLHttp.onreadystatechange = async function () {
+                    if (XMLHttp.readyState == 4 && XMLHttp.status == 200) {
+                        const geoObj = await JSON.parse(XMLHttp.responseText);
+                        // console.log(geoObj, '22222222222222222222222222');
+                        const geometryType = geoObj.features[0].geometry.type
+                        // console.log(geometryType,'geometryTypegeometryType');
+
+                        baseMap.addLayer({
+                            'id': layerName,
+                            'type': 'fill',
+                            'source': {
+                                "type": "geojson",
+                                "data": geoObj
+                            },
+                            // 'layout': {
+                            //     'visibility': 'none'
+                            // },
+                            'paint': {
+                                'fill-color': [
+                                    "step",
+                                    ["get", initField],
+                                    "#FFEDA0", 100,
+                                    "#FED976", 200,
+                                    "#FEB24C", 400,
+                                    "#FD8D3C", 600,
+                                    "#FC4E2A", 1000,
+                                    "#E31A1C", 1500,
+                                    "#BD0026",
+                                ],
+                                'fill-outline-color': '#343434',
+                                'fill-opacity': 0.7
+                            }
+                        });
+                    }
+                };
+
+            }
+            return XMLHttp
+        }
+
+        function createSymbolLayer(url, layerName, initField, baseMap) {
+            let XMLHttp;
+            let resultJson;
+            if (window.XMLHttpRequest) {
+                XMLHttp = new XMLHttpRequest();
+            } else if (window.ActiveXObject) {
+                XMLHttp = new window.ActiveXObject();
+            } else {
+                alert("请升级至最新版本的浏览器");
+            }
+            if (XMLHttp != null) {
+                XMLHttp.open("GET", url, true);
+                XMLHttp.send(null);
+                XMLHttp.onreadystatechange = async function () {
+                    if (XMLHttp.readyState == 4 && XMLHttp.status == 200) {
+                        const geoObj = await JSON.parse(XMLHttp.responseText);
+                        // console.log(geoObj, '0000000000000');
+                        const geometryType = geoObj.features[0].geometry.type
+                        // console.log(geometryType,'geometryTypegeometryType');
+                        if (geometryType === 'Point') {
+                            const clusterPoi = {
+                                "type": "geojson",
+                                "data": geoObj,
+                                cluster: true,
+                                clusterMaxZoom: 19, // Max zoom to cluster points on
+                                clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+                            }
+                            function addSymbolLayer() {
+                                baseMap.addLayer({
+                                    id: layerName + '_label',
+                                    type: 'symbol',
+                                    source: clusterPoi,
+                                    filter: ['has', 'point_count'],
+                                    layout: {
+                                        'text-field': '{point_count_abbreviated}',
+                                        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                                        'text-size': 24
+                                    },
+                                });
+                            }
+                            setTimeout(addSymbolLayer, 5000)
+                        }
+
+                    }
+                };
+
+            }
+            return XMLHttp
+        }
+
+        function createSliderTimeList() {
+            let dateList = []
+            for (let year = 1996; year < 2017; year++) {
+                for (let morth = 1; morth < 12; morth++) {
+                    if (year == 1996 && morth < 4) {
+                        console.log(`${year}-0${morth}`);
+                    } else if (year == 2017 && morth > 9) {
+                        console.log(`${year}-${morth}`);
+                    } else {
+                        if (morth < 10) {
+                            dateList.push(`${year}-0${morth}`)
+                        } else {
+                            dateList.push(`${year}-${morth}`)
+                        }
+                    }
+
+                }
+            }
+            return dateList
+        }
+
+        function onSelectLayers(value) {
+            const checkbox = $('.checkbox')
+            const isVisible = checkbox.prop('checked')
+            const newCenter = [-122.44, 37.751]
+            console.log(isVisible,'isVisible');
+            if (value === 'SFRegion') {
+                map.flyTo(
+                    {
+                        center: [-122.4763, 37.7583], // starting position [lng, lat]
+                        zoom: initZoom, // starting zoom
+                    }
+                )
+                const layerVisibility_sf = map.getLayoutProperty('SFRegion', 'visibility');
+                map.setLayoutProperty('SFRegion', 'visibility', isVisible === false ? 'none' : 'visible');
+                map.setLayoutProperty('BayRegion', 'visibility',  isVisible === true ? 'none' : 'visible');
+                if(isVisible){
+                    $('#BayRegion_check').prop('checked', false)
+                }else{
+                    $('#BayRegion_check').prop('checked', true)
+                }
+                
+               
+
+            }else if(value === 'Graffiti'){
+                const layerVisibility_sf = map.getLayoutProperty('Graffiti', 'visibility');
+                map.setLayoutProperty('Graffiti', 'visibility', layerVisibility_sf === 'visible' ? 'none' : 'visible');
+                map.setLayoutProperty('Graffiti_label', 'visibility', layerVisibility_sf === 'visible' ? 'none' : 'visible');
+                $('#graffiti_legend').prop('style', 'display:' + layerVisibility_sf === 'visible' ? 'visible' : 'none')
+            } else if(value === 'BayRegion') {
+                const BayRegion_check =  $('#BayRegion_check').prop('checked')
+   
+                if(isVisible===true){
+                    $('#SFRegion_check').prop('checked', false)
+                }else if(isVisible===false){
+                     $('#SFRegion_check').prop('checked', true)
+                }
+               
+                const layerVisibility = map.getLayoutProperty(value, 'visibility');
+                map.setLayoutProperty(value, 'visibility',  isVisible === false ? 'none' : 'visible');
+                map.setLayoutProperty('SFRegion', 'visibility',  isVisible === true ? 'none' : 'visible');
+                if (layerVisibility === 'visible') {
+                    currentLayerName = 'SFRegion'
+                    currentDate = "meanPrice"
+                } else {
+
+                    currentLayerName = 'BayRegion'
+                    currentDate = "1996-04"
+                }
+
+            }
+
+        }
+
+
+        mapboxgl.accessToken = 'pk.eyJ1IjoiaHVhbmdrIiwiYSI6ImNsMGFwbTk0MzAyYzkzZHE5dXFjMHN2a2YifQ.lBtB_1itGiA4sxV3jdhk3g';
+        var map = new mapboxgl.Map({
+            container: 'map', // container id
+            style: 'mapbox://styles/huangk/cl2xer7si001u14qcsobfrzso', 
+            center: [-122.4763, 37.7583], // starting position [lng, lat]
+            zoom: initZoom, // starting zoom
+        });
+        // Date String List
+        const dateStringList = createSliderTimeList()
+
+        // createSymbolLayer('./static/points_graffiti_03.geojson', 'Graffiti', '', map)
+
+        function onselectPoisType(value) {
+            // let poisDataG =  JSON.parse(sessionStorage.getItem('poisDataG'))
+            if (!poisDataG) {
+                return
+            }
+
+            if (value === 'All') {
+                let originData = {
+                    crs: {
+                        type: 'name',
+                        properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" }
+                    },
+                    features: poisDataG['features'],
+                    type: "FeatureCollection",
+                }
+                map.getSource('Graffiti').setData(poisDataG);
+
+            } else if (value === 'Offensive') {
+                let featureList = []
+                poisDataG.features.map(function (feature, index) {
+                    if (feature.properties.type === 1) {
+                        featureList.push(feature)
+                    }
+
+                })
+                let originData = {
+                    crs: {
+                        type: 'name',
+                        properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" }
+                    },
+                    features: featureList,
+                    type: "FeatureCollection",
+                }
+                map.getSource('Graffiti').setData(originData);
+                // const filter = ['==', 'type', 1]
+                // map.setFilter('Graffiti', filter);
+            } else if (value === 'Not_Offensive') {
+                let featureList = []
+                poisDataG.features.map(function (feature, index) {
+                    if (feature.properties.type === 0) {
+                        featureList.push(feature)
+                    }
+                })
+                let originData = {
+                    crs: {
+                        type: 'name',
+                        properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" }
+                    },
+                    features: featureList,
+                    type: "FeatureCollection",
+                }
+                map.getSource('Graffiti').setData(originData);
+
+            }
+
+            // console.log(value, 'valuevaluevalue');
+        }
+        map.on('load', async function () {
+            await createFillLayer('./static/BayArea_left_price_01.geojson', 'BayRegion', "1996-04", map)
+            await createFillLayer('./static/SF_left_price_01.geojson', 'SFRegion', 'meanPrice', map)
+            await createCircleLayer('./static/points_graffiti_05.geojson', 'Graffiti', '', map)
+            // const layer_bayAreaCityFill = map.getLayer('BayRegion')
+            setTimeout(() => { map.setLayoutProperty('BayRegion', 'visibility', 'none'); }, 10000)
+            $('#graffiti_legend').prop('style', 'display:visible')
+            map.getCanvas().style.cursor = 'default';
+            var current = 0;
+
+            var legend = document.getElementById('legend');
+            var layers = ['0-100', '100-200', '200-400', '400-600', '600-1000', '1000-1500', '1500+'];
+            var colors = ['#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026'];
+
+            for (i = 0; i < layers.length; i++) {
+                var layer = layers[i];
+                var color = colors[i];
+                var item = document.createElement('div');
+                var key = document.createElement('span');
+                key.className = 'legend-key';
+                key.style.backgroundColor = color;
+
+                var value = document.createElement('span');
+                value.innerHTML = layer;
+                item.appendChild(key);
+                item.appendChild(value);
+                legend.appendChild(item);
+            }
+
+            var popup = new mapboxgl.Popup({
+                //                        offset: [0, -15]
+                closeButton: false,
+                closeOnClick: false
+            })
+            map.on('mousemove', function (e) {
+                let features_onTouch = map.queryRenderedFeatures(e.point, {
+                    layers: [currentLayerName]
+                });
+                if (features_onTouch.length > 0) {
+
+                    // map.setFilter('boundaries', ['==', ['get', 'AREA_SHORT_CODE'], boroughs[0].properties.Hood_ID]);
+                    // map.setLayoutProperty('boundaries', 'visibility', 'visible');
+                    const regionName = features_onTouch[0].properties['City']
+                    const price_value = features_onTouch[0].properties[currentDate]
+                    popup.setLngLat(e.lngLat)
+                        .setHTML('<h3> ' + regionName + '</h3><p>' + `<span style="font-size:24px;color:#FF7600;font-weight: 600;">${price_value}</span> dollars` + `</strong> in ${currentDate}</em></p>`)
+                        .addTo(map);
+                } else {
+                    popup.remove();
+                    // map.setLayoutProperty('boundaries', 'visibility', 'none');
+                }
+            });
+
+
+        });
+
+
+        let isAnimationStop = false
+        let dateSliderBox = $('#dateSlider')
+        function showDataByTime(value) {
+            console.log(value, 'valuevaluevaluevalue');
+            const newValue = parseInt(value)
+            if (isAnimationStop) {
+
+                return
+            }
+            // clicked = true
+            if (newValue < 246) {
+                try {
+                    const currentDate_new = dateStringList[newValue]
+                    map.setPaintProperty('BayRegion', 'fill-color', [
+                        "step",
+                        ["get", currentDate_new],
+                        "#FFEDA0", 100,
+                        "#FED976", 200,
+                        "#FEB24C", 400,
+                        "#FD8D3C", 600,
+                        "#FC4E2A", 1000,
+                        "#E31A1C", 1500,
+                        "#BD0026",
+                    ]);
+
+                    $('#year').text('in ' + currentDate_new)
+                    currentDate = currentDate_new
+                } catch (error) {
+
+                }
+
+                dateSliderBox.prop('value', String(value))
+
+            } else {
+                dateSliderBox.prop('value', '0')
+                isAnimationStop = false
+                $('#year').text('in ' + dateStringList[0])
+                currentDate = dateStringList[0]
+            }
+            setTimeout(() => showDataByTime(newValue + 1), 1000)
+        }
+
+        function stopAnimation() {
+            isAnimationStop = true
+            $('#startButton').removeClass('disableClick')
+            $('#startButton').prop('disabled', '')
+        }
+
+        function startAnimaton() {
+            $('#startButton').addClass('disableClick')
+            $('#startButton').prop('disabled', 'disabled')
+            isAnimationStop = false
+            showDataByTime(0)
+        }
+        function selectDate(value) {
+            console.log(value);
+            isAnimationStop = true
+            currentDate = dateStringList[parseInt(value)]
+            dateSliderBox.prop('value', String(value))
+            try {
+
+                map.setPaintProperty('BayRegion', 'fill-color', [
+                    "step",
+                    ["get", currentDate],
+                    "#FFEDA0", 100,
+                    "#FED976", 200,
+                    "#FEB24C", 400,
+                    "#FD8D3C", 600,
+                    "#FC4E2A", 1000,
+                    "#E31A1C", 1500,
+                    "#BD0026",
+                ]);
+
+                $('#year').text('in ' + currentDate)
+                currentDate = currentDate
+            } catch (error) {
+
+            }
+            $('#year').text('in' + currentDate)
+        }
+
+
+    </script>
+
+
+
+
+</body>
+<grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration>
+
+</html>

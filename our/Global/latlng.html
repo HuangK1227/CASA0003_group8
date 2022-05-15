@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>get longitude and latitude</title>
+		<script src="https://d3js.org/d3.v7.min.js"></script>
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	</head>
+	<body>
+		<table>
+			<thead>
+				<tr>
+					<td>Years</td>
+					<th>Rank</th>
+					<th>City</th>
+					<th>Price To Income Ratio</th>
+					<th>longitude</th>
+					<th>latitude</th>
+				</tr>
+			</thead>
+			<tbody id="appendResult">
+				
+			</tbody>
+		</table>
+		<script>
+			//var key = "you api key register in developer.mapquest.com";
+			var key ="";
+			d3.csv('./city_house_income.csv').then(data => {
+				console.log(data);
+				//data.length = 2;
+				var tbody = document.querySelector('#appendResult');
+				data.forEach((d,i)=>{
+					var address = d["City"];
+					var addresSlips = address.split(", ")
+					address = `${addresSlips[0]} ${addresSlips[1]}`;
+					var requestUrl = `http://www.mapquestapi.com/geocoding/v1/address?key=${key}&location=${address}`;
+					$.get(requestUrl,(res)=>{
+						var tr = document.createElement("tr")
+						var td = document.createElement("td")
+						td.innerHTML = 2022
+						tr.appendChild(td)
+						var td = document.createElement("td")
+						td.innerHTML = d.Rank
+						tr.appendChild(td)
+						var td = document.createElement("td")
+						td.innerHTML = d.City
+						tr.appendChild(td)
+						var td = document.createElement("td")
+						td.innerHTML = d["Price To Income Ratio-2022"]
+						tr.appendChild(td)
+						var td = document.createElement("td")
+						td.innerHTML = res.results[0].locations[0].displayLatLng.lng
+						tr.appendChild(td)
+						var td = document.createElement("td")
+						td.innerHTML = res.results[0].locations[0].displayLatLng.lat
+						tr.appendChild(td)
+						tbody.appendChild(tr);
+					});
+				})
+				
+				
+			})
+			
+		</script>
+	</body>
+</html>

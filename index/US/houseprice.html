@@ -177,7 +177,7 @@
                     </div>
             </div>
             <hr class="divider1">
-            <img id="pricepic" src="../img/averageprice.png">
+            <img id="pricepic" src="/img/averageprice.png">
             
             <!-- <hr class="divider1">
             <h4>Source:<br></h4>
@@ -261,31 +261,68 @@
         map.on('load', function () {
             // Add standard navigation control
             map.addControl(new mapboxgl.NavigationControl());
-
-            addMyLayer('2000-01')
+            // addbgLayer()
+            var count=1
+            addMyLayer('2000-01',0)
+            
             lines()
+           
 
             document.getElementById('slider').addEventListener('input', (e) => {
                 let val = parseInt(e.target.value);
+                
                 year = showDates[val]
                 document.getElementById('year').textContent = year;  // Set the label to the correct year
+                if(count>5){
+                    let tmp=count-2
+                map.removeLayer('lines'+tmp)
+                map.removeLayer('CAline'+tmp)
+                map.removeSource('lines'+tmp)
+                map.removeSource('CAline'+tmp)
+                 map.removeLayer('layerId'+tmp)
+                 map.removeSource('layerId'+tmp)
+
+                }
                 
-                map.removeLayer('lines')
-                map.removeLayer('CAline')
-                map.removeSource('lines')
-                map.removeSource('CAline')
-                map.removeLayer('layerId')
-                map.removeSource('layerId')
+                // map.removeLayer('lines')
+                // map.removeLayer('CAline')
+                // map.removeSource('lines')
+                // map.removeSource('CAline')
+                //  map.removeLayer('layerId')
+                //  map.removeSource('layerId')
                 // map.removeLayer('labels')
                 // map.removeSource('labels')
                 field = val
-                addMyLayer(year)
-                lines()
+                addMyLayer(year,count)
+                lines(count)
+                count=count+1
+                
             });
+            // function addbgLayer() {
+            //     map.addLayer({
+            //         id: 'bg',
+            //         source: {
+            //             id: 'sourceId',
+            //             type: 'vector',
+            //             // url: 'mapbox://vivien9797.ckolb22cq08yh28ph1ffqgzat-7bnqu'
+            //             url: 'mapbox://w762441.cilgv5og'
+            //         },
+                    
+            //         'source-layer': 'state-0aigkd',
+            //         'type': 'fill',
+            //         'paint': {
 
-            function addMyLayer(field) {
+            //             'fill-color': [
+            //             'rgb(255, 255, 0)'
+            //             ]
+            //         }
+            //     });
+
+            // }
+
+            function addMyLayer(field,count) {
                 map.addLayer({
-                    id: 'layerId',
+                    id: 'layerId'+count,
                     source: {
                         id: 'sourceId',
                         type: 'vector',
@@ -339,9 +376,9 @@
                 
 
             }
-            function lines(){
+            function lines(count){
                 map.addLayer({                  // Add the all line  layer
-                id: 'lines',
+                id: 'lines'+count,
                 type: 'line',
                 source: {
                 type: 'vector',
@@ -358,7 +395,7 @@
                 // filter: ['==','name','empty']
             });
             map.addLayer({                  // Add the CA line  layer
-                id: 'CAline',
+                id: 'CAline'+count,
                 type: 'line',
                 source: {
                 type: 'vector',
@@ -383,7 +420,7 @@
             });
             map.on('click', function (e) {
                 var features = map.queryRenderedFeatures(e.point);
-                let feature = features.find(f => f.layer.id === 'layerId')
+                let feature = features.find(f => f.layer.id === 'layerId0')
                 if (!feature) return;
                 const { NAME } = feature.properties;
                 popup.remove()

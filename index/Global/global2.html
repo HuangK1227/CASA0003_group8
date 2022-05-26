@@ -15,6 +15,7 @@
 				display: flex;
 				line-height: 3em;
 				position: fixed;
+				justify-content: space-between;
 				top: 0;
 				left: 0;
 				right: 0;
@@ -92,23 +93,59 @@
 				cursor: pointer;
 			}
 
+			#imgShowRightTop {
+				position: absolute;
+				top: 48px;
+				right: 0px;
+			}
+
+			#imgShowRightTop img {
+				width: 500px;
+			}
+
+			.showColoeTips {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				padding-right: 2em;
+			}
+
+			.showtipssvg {
+				display: flex;
+				align-items: center;
+				flex-direction: column;
+			}
+
 			.mainCity span {
 				line-height: 3em;
+			}
+			#opacity1 {
+				opacity: 0.8;
+				filter: none;
 			}
 		</style>
 	</head>
 	<body>
 		<div class="oparea">
-			<div class="item">
-				<label>year</label>
-				<select id="year" name="year">
-					<option value="all">all</option>
-				</select>
+			<div style="display: flex;">
+				<div class="item">
+					<label>year</label>
+					<select id="year" name="year">
+						<option value="all">all</option>
+					</select>
+				</div>
+				<div class="item">
+					<label>city</label>
+					<select id="city" name="city">
+					</select>
+				</div>
 			</div>
-			<div class="item">
-				<label>city</label>
-				<select id="city" name="city">
-				</select>
+			<div class="showColoeTips">
+				<span>Lowest</span>
+				<div class="showtipssvg">
+					<svg id="colorTips" width="240" height="40"></svg>
+				</div>
+				<span>Highest</span>
 			</div>
 		</div>
 		<div id="map">
@@ -122,15 +159,15 @@
 		<div id="tips">
 
 		</div>
+		<!-- <div id="imgShowRightTop"><img id='opacity1' src="20220513210156.png"></div> -->
 		<div class="mainCity">
 			<h4>Main City</h4>
-            <span class="maincityItem">Beijing, China</span>
-            <span class="maincityItem">Shanghai, China</span>
-            <span class="maincityItem">London, United Kingdom</span>
-            <span class="maincityItem">New York, NY, United States</span>
-            <span class="maincityItem">Los Angeles, CA, United States</span>
-            <span class="maincityItem">San Francisco, CA, United States</span>
-            
+			<span class="maincityItem">Los Angeles, CA, United States</span>
+			<span class="maincityItem">Hong Kong, Hong Kong</span>
+			<span class="maincityItem">San Francisco, CA, United States</span>
+			<span class="maincityItem">Beijing, China</span>
+			<span class="maincityItem">London, United Kingdom</span>
+			<span class="maincityItem">Shanghai, China</span>
 		</div>
 		<script>
 			function drawMap(mapdata, markers, colorscale, year = "all", city = "all") {
@@ -147,7 +184,7 @@
 						.attr("preserveAspectRatio", "xMidYMid meet");
 				}
 				var svgG = svg.append("g").attr("id", "svgG").attr("x", 0).attr("y", 0).attr("scale", 1);
-				d3.select('svg').call(d3.zoom().on("start", function(event) {
+				d3.select("#map").select('svg').call(d3.zoom().on("start", function(event) {
 					//event.transform.k = svgG.attr("scale");
 					d3.select("#svgG")
 						.attr("xv", event.sourceEvent.x)
@@ -364,20 +401,29 @@
 					"rgb(240, 116, 75)", "rgb(240, 85, 57)", "rgb(240, 76, 35)", "rgb(240, 51, 13)",
 					"rgb(240, 27, 7)", "rgb(208, 21, 4)", "rgb(180, 17, 2)", "rgb(99, 8, 0)",
 				];*/
-                
-               /* var colorValues = ["rgb(251,234,177)", "rgb(246,215,143)", "rgb(235,182,99)", "rgb(234,147,77)",
+
+				/* var colorValues = ["rgb(251,234,177)", "rgb(246,215,143)", "rgb(235,182,99)", "rgb(234,147,77)",
 					"rgb(225,95,55)", "rgb(201,55,46)", "rgb(171,36,47)",
 				];*/
-                var colorValues = ["rgb(255,255,156)", "rgb(255,255,95)", "rgb(250,225,75)","rgb(245, 185, 64)", "rgb(237,146,53)", "rgb(236, 107, 45)", "rgb(235, 72, 38)",
+				var colorValues = ["rgb(255,255,156)", "rgb(255,255,95)", "rgb(250,225,75)", "rgb(245, 185, 64)",
+					"rgb(237,146,53)", "rgb(236, 107, 45)", "rgb(235, 72, 38)",
 					"rgb(232, 53, 35)", "rgb(204, 43, 29)", "rgb(166,33,22)", "rgb(128,23,14)",
 					"rgb(91,16,7)",
-					
+
 				];
-                
+
+				d3.select('#colorTips').append('g').selectAll("rect").data(colorValues)
+					.enter()
+					.append("rect")
+					.attr("width", 20)
+					.attr("height", 30)
+					.attr("x", (d, i) => 20 * i + 4)
+					.attr("y", 0)
+					.attr("fill", d => d)
 				var colorscale = d3.scaleQuantize()
 					.domain(d3.extent(cityHouseIncode, d => d["Price To Income Ratio"]))
 					.range(colorValues);
-                
+
 				var clearCityHouseIncode = d3.group(cityHouseIncode, d => {
 					return d.City;
 				})
@@ -444,7 +490,7 @@
 					}
 					d3.select("#svgG").attr("x", beforeX + offsetX).attr("y", beforeY + offsetY).attr("transform", "translate(" +
 						(beforeX + offsetX) + "," + (beforeY + offsetY) + ") scale(" + d3.select("#svgG").attr("scale") + ")"
-						);
+					);
 					d3.selectAll('.cityCircle').attr("r", 10).style("stroke", "none");
 					d3.selectAll('#' + selectId).attr("r", 20).style("stroke", "yellow");
 					d3.selectAll('#' + selectId).moveToFront();
@@ -534,7 +580,7 @@
 						}
 					}
 
-					
+
 					showCityCenter(currentCity);
 				})
 

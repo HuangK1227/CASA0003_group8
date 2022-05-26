@@ -9,20 +9,20 @@ Website: <https://jackeytanlor.github.io/CASA0003_group8/index/housepriceSF>
 ## File Description
 Project file: index 
 
-Vizualization html: index/housepriceSF.html
+Vizualization html: [index/housepriceSF.html](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index)
 
-Global level: index/housepriceSF.html
+Global level: [index/housepriceSF.html](https://github.com/Jackeytanlor/CASA0003_group8/blob/main/index/housepriceSF.html)
 
-USA level: index/US
+USA level: [index/US](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index/US)
 
-SF-business: index/Business
+SF-business: [index/Business](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index/Business)
 
-SF-gentrification: index/Gen
+SF-gentrification: [index/Gen](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index/Gen)
 
-SF-graffiti: index/Graffi
+SF-graffiti: [index/Graffi](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index/Graffi)
 
-CSS: index/css
+CSS: [index/css](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index/css)
 
-JS: index/js
+JS: [index/js](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index/js)
 
-Figure: index/img
+Figure: [index/img](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index/img)

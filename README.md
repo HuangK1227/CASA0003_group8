@@ -7,11 +7,11 @@ Team member: Tan Jieqi, Luo Mengjiao, Wang Wei, Cai Siyi, Huang Yanpu
 Website: <https://jackeytanlor.github.io/CASA0003_group8/index/housepriceSF>
 
 ## File Description
-Project file: index 
+Project file: [index](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index) 
 
 Vizualization html: [index/housepriceSF.html](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index)
 
-Global level: [index/housepriceSF.html](https://github.com/Jackeytanlor/CASA0003_group8/blob/main/index/housepriceSF.html)
+Global level: [index/Global](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index/Global)
 
 USA level: [index/US](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index/US)
 

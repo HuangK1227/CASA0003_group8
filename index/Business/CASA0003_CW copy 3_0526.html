@@ -23,24 +23,27 @@
 
         #text {
             position: absolute;
-            background-color: rgba(255, 255, 255, 0.6);
+            background-color: #fff;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.20);
             border-radius: 3px;
             padding: 16px;
             margin-top: 10px;
             margin-left: 10px;
+            width: 25%;
 
         }
 
         #text h2 {
             line-height: 18px;
-            font-size: 20px;
+            font-size: 17px;
             margin: 0;
         }
 
         #text p.credit {
             margin: 10px 0 0 0;
             padding: 0;
+            font: 12px/16px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            vertical-align: bottom;
         }
 
         #map {
@@ -83,23 +86,24 @@
             bottom: 6px;
             left: 6px;
             background-color: transparent;
-
+            width: 30%;
             border-radius: 3px;
-            padding: 15px;
-            margin-bottom: 15px;
-            margin-right: 15px;
+            padding: 0px;
+            margin-bottom: 0px;
+            margin-right: 0px;
         }
 
 
         #chartContainer p {
-            margin-left: 40px;
+            
+            margin-left: 10px;
             margin-bottom: 10px;
             margin-top: 0;
             padding: 0;
         }
 
         #charttitle {
-            font: bold 18px Verdana, sans-serif;
+            font: bold 15px Verdana, sans-serif;
 
         }
 
@@ -151,30 +155,25 @@
 <body>
     <nav id="menu"></nav>
     <div id="map"></div>
-    v
+    
     <div id="text">
         <h2>San Francisco Bay Area Business and Housing Price 2019</h2>
-        <p class="credit">Business Data source: <a
-                href="https://data.sfgov.org/Economy-and-Community/Registered-Business-Locations-San-Francisco/g8m3-pdis">Registered
-                Business Locations - San Francisco</a>.</p>
-        <p class="credit">Housing Data source: <a
-                href="https://github.com/mboles01/Realestate/tree/master/Data/listings​">Github SA Housing Price
-                data</a>.</p>
 
-        <p class="credit">
-            The largest number of registered businesses in 2019 are seen in areas with <br>
-            Zipcode 94103, 94107 and 94110 according to the data. Meanwhile, 80% <br>
-            of the businesses is concentrated in San Francisco city.<br>
-            For the housing price, the area with low and high price has relatively small <br>
-            business number. On the opposite, most of the business locate in the area <br>
-            that have medium housing price.
+
+        <p class="credit" >
+             The largest number of registered businesses in 2019 are seen in areas with 
+             Zipcode 94103, 94107 and 94110 according to the data. Meanwhile, 80% 
+             of the businesses is concentrated in San Francisco city.
+             For the housing price, the area with low and high price has relatively small 
+             business number. On the opposite, most of the business locate in the area 
+             that have medium housing price.
 
         </p>
     </div>
 
     <div id="chartContainer">
         <p id="charttitle">Housing price vs business number</p>
-        <p id="chartsubhead">Average housing price and registered business number <br> in each zipcode area.</p>
+        <p id="chartsubhead">Average housing price and registered business number in each zipcode area.</p>
     </div>
 
     <div id="legend">
@@ -344,9 +343,9 @@
                     paint: {
                         // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
                         // with three steps to implement three types of circles:
-                        //   * Blue, 20px circles when point count is less than 100 and 200
-                        //   * Yellow, 30px circles when point count is between 200 and 600
-                        //   * Pink, 40px circles when point count is greater than or equal to 600
+                        //   * Blue, 20px circles when point count is less than 100
+                        //   * Yellow, 30px circles when point count is between 100 and 750
+                        //   * Pink, 40px circles when point count is greater than or equal to 750
                         'circle-opacity': 1,
                         'circle-color': [
                             'step',
@@ -389,7 +388,7 @@
                     source: 'points',
                     filter: ['!', ['has', 'point_count']],
                     paint: {
-                        'circle-color': '#888888',
+                        'circle-color': '#6ff734',
                         'circle-opacity': 0.7,
                         'circle-stroke-width': 0.1,
                         'circle-stroke-color': '#999',

@@ -4,7 +4,9 @@ Project topic: House price in San Francisco
 
 Team member: Tan Jieqi, Luo Mengjiao, Wang Wei, Cai Siyi, Huang Yanpu
 
-Website: <https://jackeytanlor.github.io/CASA0003_group8/index/housepriceSF>
+Github repository website:<https://github.com/Jackeytanlor/CASA0003_group8>
+
+Vizualization website: <https://jackeytanlor.github.io/CASA0003_group8/index/housepriceSF>
 
 ## File Description
 Project file: [index](https://github.com/Jackeytanlor/CASA0003_group8/tree/main/index) 
